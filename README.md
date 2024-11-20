@@ -251,3 +251,66 @@ where photo.id_beer = 10;
 ```
 
 Cette dernière requête n'est pas faisable car la photo est référencée dans la table brewery car il y a une contrainte de FK (foreign key)
+
+## Manipulations avancées
+
+### Écrire une procédure stockée permettant à un utilisateur de noter une bière. Si l'utilisateur a déjà noté cette bière, la note est mise à jour ; sinon, une nouvelle note est ajoutée.
+```sql
+CREATE OR REPLACE FUNCTION BeerRating(
+    IN p_id_users INT,       -- ID de l'utilisateur
+    IN p_id_beer INT,       -- ID de la bière
+    IN p_rate INT           -- Note attribuée 
+)
+RETURNS VOID AS $$
+DECLARE
+    rate_exist BOOLEAN;    -- Variable pour vérifier l'existence d'une note
+BEGIN
+    -- Vérifier si l'utilisateur a déjà noté cette bière
+    SELECT EXISTS
+    (
+        SELECT 1
+        FROM review
+        WHERE id_users = p_users_id
+        AND id_beer = p_beer_id
+    ) INTO rate_exist;
+
+    IF rate_exist THEN
+        -- Si la note existe, mettre à jour la note
+        UPDATE review
+        SET rate = p_rate
+        WHERE id_users = p_users_id
+        AND id_beer = p_beer_id;
+    ELSE
+        -- Sinon, insérer une nouvelle note
+        INSERT INTO review (id_users, id_beer, rate)
+        VALUES (p_id_users, p_id_beer, p_rate);
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+```
+
+### Écrire un déclencheur (trigger) pour vérifier que l'ABV (taux d'alcool) est compris entre 0 et 20 avant l'ajout de chaque bière.
+```sql
+CREATE OR REPLACE FUNCTION verif_abv()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Vérification que le taux d'alcool (ABV) est valide
+    IF NEW.abv < 0 OR NEW.abv > 20 THEN
+        RAISE EXCEPTION 'Le taux d''alcool doit être compris entre 0 et 20 %', NEW.abv;
+    END IF;
+    RETURN NEW; -- Autorise l'insertion si la vérification est réussie
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER verif_abv_beer
+BEFORE INSERT ON beer
+FOR EACH ROW
+EXECUTE FUNCTION verif_abv();
+
+INSERT INTO beer (name, description, abv, acidity, bitterness, sweetness, container_type, beer_volume, organic_beer)
+VALUES ('biere test ok', 'ok', 10, 3, 3, 3, 'Can', 500, true); -- Fonctionne 
+
+INSERT INTO beer (name, description, abv, acidity, bitterness, sweetness, container_type, beer_volume, organic_beer)
+VALUES ('biere test incorrect', 'fail', 25, 3, 3, 3, 'Can', 500, false); -- Erreur
+```
