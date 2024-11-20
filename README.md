@@ -247,7 +247,7 @@ where
 ### 13. Supprimer les photos d'une bière en particulier.
 ```sql
 delete from photo
-where id_beer = 10;
+where photo.id_beer = 10;
 ```
 
 Cette dernière requête n'est pas faisable car la photo est référencée dans la table brewery car il y a une contrainte de FK (foreign key)
