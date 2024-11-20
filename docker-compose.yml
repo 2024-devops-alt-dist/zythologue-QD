@@ -1,0 +1,20 @@
+services:
+
+  db:
+    image: postgres
+    container_name: postgres_service
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: Zytho
+    ports:
+      - 5433:5432
+    volumes:
+    - db-data:/var/lib/postgresql/data #Volume pour que même si je stoppe mon conteneur, mes données ne soient pas perdues
+    - ./init.sql:/docker-entrypoint-initdb.d/init.sql #même si je supprime tout, docker vient initiliser la base de donnée par rapport au fichier 
+
+volumes:
+  db-data:
+
+
+    
