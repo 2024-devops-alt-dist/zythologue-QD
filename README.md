@@ -30,10 +30,13 @@ Pour installer ce projet en local vous aurez besoin de :
 
 ## Lancement Local
 
-Clonez le projet :
+Clonez le projet via HTTPS ou SSH :
 
 ```bash
-  git clone https://github.com
+  git clone https://github.com/2024-devops-alt-dist/zythologue-qd.git
+```
+```bash
+  git clone git@github.com:2024-devops-alt-dist/zythologue-qd.git
 ```
 
 Lancez le container Docker grâce à cette commande dans votre terminal :
